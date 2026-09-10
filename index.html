@@ -1485,6 +1485,7 @@ body{
     sold.forEach(it => {
       const m = itemMetrics(it);
       const tr = document.createElement('tr');
+    
       tr.innerHTML = `
         <td>${fmtDate(it.dateSold)}</td>
         <td class="cell-product">${it.product}</td>
@@ -1494,7 +1495,17 @@ body{
         <td class="cell-num ${m.profit >= 0 ? 'pos' : 'neg'}">${fmtEuro(m.profit)}</td>
         <td>${it.payment}</td>
         <td><span class="pill ${appPillClass(it.app)}">${it.app}</span></td>
+        <td class="row-actions">
+          <button class="row-remove archive-remove" data-id="${it.id}" title="Delete sale">&times;</button>
+        </td>
       `;
+    
+      tr.querySelector('.archive-remove').addEventListener('click', () => {
+        items = items.filter(x => x.id !== it.id);
+        saveItems();
+        renderAll();
+      });
+    
       body.appendChild(tr);
     });
   }
