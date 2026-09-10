@@ -1,0 +1,2072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="AFTERFORM — stock & revenue tracker.">
+<title>After Form— Stock &amp; Revenue</title>
+<link rel="icon" type="image/png" href="af-favicon.png">
+<style>
+  :root{
+    --bg:#000000;
+    --bg-raised:#080705;
+    --panel:#080705;
+    --panel-2:#080705;
+    --card:#e3d7c7;
+    --ink:#e3d7c7;
+    --ink-dim:#a89a86;
+    --ink-faint:#726556;
+    --accent:#e3d7c7;
+    --accent-dim:#b9ad99;
+    --border:rgba(227,215,199,0.14);
+    --border-strong:rgba(227,215,199,0.28);
+    --pos:#8fae6c;
+    --pos-bg:rgba(143,174,108,0.14);
+    --neg:#c8543f;
+    --neg-bg:rgba(200,84,63,0.14);
+    --warn:#c99a3f;
+    --warn-bg:rgba(201,154,63,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth; height:100%;}
+body{
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+
+  background:
+    radial-gradient(
+      ellipse 120% 80% at 15% 0%,
+      rgba(250, 215, 146, 0.07),
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 120% 80% at 85% 50%,
+      rgba(250, 215, 146, 0.055),
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 120% 80% at 50% 100%,
+      rgba(250, 215, 146, 0.06),
+      transparent 65%
+    ),
+    var(--bg);
+
+  background-repeat:no-repeat;
+  background-size:100% 100%;
+  background-attachment:fixed;
+
+  font-family:Arial, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+  body::before{
+    content:''; position:fixed; inset:-20%; z-index:-1; pointer-events:none;
+    filter:blur(28px); transform:rotate(-5deg);
+  }
+  h1,h2,h3,.display{
+    font-family:Arial, "Helvetica Neue", sans-serif;
+    letter-spacing:-0.01em;
+    line-height:0.98;
+    font-weight:800;
+  }
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit; cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+
+  /* ---------- Marquee ---------- */
+  .marquee{
+    background:rgba(0,0,0,.42);
+    border-bottom:1px solid var(--border);
+    overflow:hidden; white-space:nowrap; padding:8px 0;
+  }
+  .marquee-track{ display:inline-flex; animation:scroll 32s linear infinite; }
+  .marquee-track span{
+    display:inline-flex; align-items:center;
+    font-size:11px; font-weight:700; letter-spacing:0.2em;
+    text-transform:uppercase; color:#f8ebce;
+    background:#030303; padding:0 22px; white-space:nowrap;
+  }
+  .marquee-track span.marq-pos{ color:#c7e0bc; }
+  .marquee-track span.marq-neg{ color:#f0c3b6; }
+  .marquee-track span::after{ content:'●'; color:var(--accent); font-size:6px; margin-left:22px; }
+  @keyframes scroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky; top:0; z-index:40;
+    background:rgba(4,4,4,0.92); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .header-inner{
+    width:min(1320px, calc(100% - 40px)); margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 0; gap:24px;
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+.brand-mark{
+  height:40px;
+  width:auto;
+  border-radius:8px;
+  display:block;
+  object-fit:contain;
+  outline:2px solid #a89a8680;
+  outline-offset:2px;
+}
+  .brand-name{
+    font-family:Arial, sans-serif;
+    font-size:16px;
+    font-weight:900;
+    letter-spacing:.12em;
+    line-height:1;
+    text-transform:uppercase;
+    color:#F8EBCE;
+  }
+  .brand-sub{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.35em;
+    text-transform:uppercase;
+    color:#D8B993;
+    margin:0;
+  }
+  nav{ display:flex; gap:26px; }
+  nav a{
+    font-family:Arial, sans-serif;
+    border-radius:999px;
+    padding:.75rem 1rem;
+    font-size:.75rem;
+    font-weight:900;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#F8EBCE;
+    transition:all .2s ease;
+  }
+  nav a:hover{ color:var(--ink); }
+  .header-actions{ display:flex; align-items:center; gap:10px; }
+  .header-cta{
+    padding:10px 18px; background:var(--accent); color:#030303;
+    border:1px solid var(--accent); border-radius:9999px;
+    font-size:11.5px; font-weight:800; letter-spacing:.04em;
+  }
+  .header-cta:hover{ background:var(--accent-dim); border-color:var(--accent-dim); }
+  .header-ghost{
+    padding:10px 16px; background:transparent; color:var(--ink-dim);
+    border:1px solid var(--border-strong); border-radius:9999px;
+    font-size:11.5px; font-weight:800; letter-spacing:.04em;
+    display:inline-block;
+  }
+  .header-ghost:hover{ color:var(--ink); border-color:var(--accent); }
+
+  .wrap{ width:min(1320px, calc(100% - 40px)); margin:0 auto; }
+  body > .wrap{ flex:1 0 auto; }
+
+  /* ---------- Hero ---------- */
+  .hero{ padding:52px 0 34px; }
+  .hero-top{ display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:26px; }
+  .badge-live{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    border:1px solid rgba(227, 215, 199, 0.48);
+    border-radius:999px;
+    background:rgba(227, 215, 199, 0.18);
+    padding:4px 14px;
+    font-size:.75rem;
+    line-height:1rem;
+    font-weight:900;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:#F8EBCE;
+    margin-top:8px;
+    margin-bottom:26px;
+    box-shadow:0 0 18px rgba(227, 215, 199, 0.10);
+  }
+  .hero h1{
+    font-family:Arial, sans-serif;
+    font-size:clamp(72px, 7vw, 110px);
+    font-weight:900;
+    text-transform:uppercase;
+    line-height:.86;
+    letter-spacing:-.06em;
+    color:#F8EBCE;
+    max-width:100%;
+    text-shadow:0 0 42px rgba(227, 215, 199, 0.25), 0 0 90px rgba(200, 190, 175, 0.08);
+  }
+  .hero-note{ color:var(--ink-dim); font-size:13px; max-width:270px; text-align:right; line-height:1.6; }
+
+  .kpi-row{ display:grid; grid-template-columns:repeat(3, 1fr) auto; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:22px; overflow:hidden; }
+  .kpi-card{ background:var(--panel); padding:20px 22px; position:relative; }
+  .kpi-card::before{ content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--ink-faint); }
+  .kpi-card.pos::before{ background:var(--pos); }
+  .kpi-card.neg::before{ background:var(--neg); }
+  .kpi-label{ font-size:10.5px; font-weight:800; letter-spacing:.1em; color:var(--ink-dim); text-transform:uppercase; }
+  .kpi-value{ font-size:30px; margin-top:9px; font-weight:800; letter-spacing:-0.01em; }
+  .kpi-value.pos{ color:var(--pos); }
+  .kpi-value.neg{ color:var(--neg); }
+  .kpi-value.flat{ color:#f8ebce; }
+  .kpi-sub{ font-size:11px; color:var(--ink-faint); margin-top:5px; font-weight:600; }
+  .kpi-side{
+    display:flex; flex-direction:column; gap:12px; justify-content:center;
+    background:var(--panel); padding:18px 22px; min-width:150px;
+  }
+  .kpi-side .pair{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .kpi-side .pair .num{ font-size:19px; font-weight:800; color:#e3d7c7; }
+  .kpi-side .pair .lbl{ font-size:9.5px; letter-spacing:.1em; color:var(--ink-dim); text-transform:uppercase; font-weight:700; }
+  .kpi-side .pair .num.warn{ color:var(--warn); }
+
+  /* ---------- Goal bar ---------- */
+  .goal-bar{
+    margin-top:14px; background:var(--panel); border:1px solid var(--border); border-radius:20px;
+    padding:18px 22px; display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  }
+  .goal-label{ font-size:10.5px; font-weight:800; letter-spacing:.1em; color:var(--ink-dim); text-transform:uppercase; white-space:nowrap; }
+  .goal-track{ flex:1; min-width:160px; height:8px; background:#1a1712; border-radius:99px; overflow:hidden; }
+  .goal-fill{ height:100%; background:linear-gradient(90deg, var(--accent-dim), var(--accent)); border-radius:99px; transition:width .3s; }
+  .goal-figs{ font-size:12.5px; color:#f8ebce; font-weight:700; white-space:nowrap; }
+  .goal-edit{ background:none; border:1px solid var(--border-strong); color:var(--ink-dim); border-radius:9999px; padding:6px 12px; font-size:10.5px; font-weight:800; letter-spacing:.06em; }
+  .goal-edit:hover{ color:#f8ebce; border-color:var(--accent); }
+
+  /* ---------- Charts ---------- */
+  .charts{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:22px; overflow:hidden; margin-top:20px; }
+  .chart-card{
+    background:var(--panel);
+    padding:22px 24px 20px;
+  }
+  .chart-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; }
+  .chart-title{ font-size:12px; font-weight:800; letter-spacing:.08em; color:#f8ebce; }
+  .chart-sub{ font-size:11px; color:var(--ink-dim); font-weight:600; }
+  svg text{ font-family:Arial, sans-serif; fill:var(--ink-dim); }
+  .line-path{ fill:none; stroke:var(--accent); stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round; }
+  .area-fill{ fill:url(#areaGrad); opacity:.45; }
+  .grid-line{ stroke:var(--border); stroke-width:1; }
+
+  /* ---------- Donut chart ---------- */
+  .donut-wrap{ display:flex; align-items:center; gap:22px; flex-wrap:wrap; min-height:180px; }
+  .donut-wrap svg{ flex:0 0 auto; }
+  .donut-legend{ display:flex; flex-direction:column; gap:9px; flex:1; min-width:130px; }
+  .donut-legend .leg-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; font-size:11.5px; }
+  .donut-legend .leg-left{ display:flex; align-items:center; gap:8px; color:#f8ebce; font-weight:700; }
+  .donut-legend .dot{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+  .donut-legend .leg-val{ color:var(--ink-dim); font-weight:700; white-space:nowrap; }
+  .donut-empty{ color:var(--ink-faint); font-size:12px; }
+
+  /* ---------- Horizontal bar chart ---------- */
+  .hbar-chart{ display:flex; flex-direction:column; gap:12px; padding-top:2px; }
+  .hbar-row{ display:flex; flex-direction:column; gap:6px; }
+  .hbar-top{ display:flex; align-items:baseline; justify-content:space-between; font-size:11.5px; }
+  .hbar-label{ color:#f8ebce; font-weight:700; }
+  .hbar-val{ font-weight:800; font-size:12px; }
+  .hbar-val.pos{ color:var(--pos); }
+  .hbar-val.neg{ color:var(--neg); }
+  .hbar-track{ height:9px; background:#1a1712; border-radius:99px; overflow:hidden; }
+  .hbar-fill{ height:100%; border-radius:99px; background:linear-gradient(90deg, var(--accent-dim), var(--accent)); }
+  .hbar-fill.neg{ background:linear-gradient(90deg, #8a3a2b, var(--neg)); }
+  
+    /* ---------- AFTERFORM scrollbars ---------- */
+  *{ scrollbar-width:thin; scrollbar-color:rgba(227,215,199,.34) rgba(227,215,199,.035); }
+  *::-webkit-scrollbar{ width:9px; height:9px; }
+  *::-webkit-scrollbar-track{ background:rgba(3,3,3,.72); border-radius:99px; }
+  *::-webkit-scrollbar-thumb{
+    background:linear-gradient(180deg, rgba(227,215,199,.48), rgba(185,173,153,.25));
+    border:2px solid rgba(3,3,3,.72);
+    border-radius:99px;
+  }
+  *::-webkit-scrollbar-thumb:hover{
+    background:linear-gradient(180deg, rgba(248,235,206,.72), rgba(227,215,199,.38));
+  }
+  *::-webkit-scrollbar-corner{ background:transparent; }
+
+  /* ---------- Performance panels ---------- */
+  .perf-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:22px; overflow:hidden; margin-top:20px; }
+  .perf-card{ background:var(--panel); padding:20px 22px; }
+  .perf-title{ font-size:12px; font-weight:800; letter-spacing:.08em; color:#f8ebce; margin-bottom:4px; }
+  .perf-note{ font-size:11px; color:var(--ink-dim); margin-bottom:14px; }
+  .perf-row{ display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-top:1px solid var(--border); font-size:12.5px; }
+  .perf-row:first-of-type{ border-top:none; }
+  .perf-name{ color:#f8ebce; font-weight:700; }
+  .perf-meta{ color:var(--ink-faint); font-size:10.5px; font-weight:600; margin-top:1px; }
+  .perf-val{ font-weight:800; font-size:13px; }
+  .perf-val.pos{ color:var(--pos); }
+  .perf-val.neg{ color:var(--neg); }
+  .perf-empty{ color:var(--ink-faint); font-size:12px; padding:6px 0; }
+  .stale-tag{ display:inline-flex; align-items:center; gap:5px; background:var(--warn-bg); color:#e0bc74; padding:3px 9px; border-radius:99px; font-size:10px; font-weight:800; letter-spacing:.04em; }
+
+  /* ---------- Inventory table ---------- */
+  .section{ padding:20px 0 60px; }
+  .section-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:12px; }
+  .section-title{ font-size:22px; color:#f8ebce; font-weight:800; }
+  .section-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+  .add-btn{
+    padding:10px 16px; background:transparent; color:var(--ink);
+    border:1px solid var(--border-strong); border-radius:9999px;
+    font-size:11px; font-weight:800; letter-spacing:.06em;
+  }
+  .add-btn:hover{ border-color:var(--accent); color:#f8ebce; }
+
+  .toolbar{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    background:var(--panel); border:1px solid var(--border); border-radius:20px 20px 0 0;
+    padding:14px 18px; border-bottom:none;
+  }
+  .toolbar input[type="search"]{
+    flex:1; min-width:160px; padding:9px 14px; background:#030303; color:#f8ebce;
+    border:1px solid rgba(237,210,171,.18); border-radius:9999px; outline:none; font-size:12.5px;
+  }
+  .toolbar select{
+    padding:9px 14px; background:#030303; color:#f8ebce;
+    border:1px solid rgba(237,210,171,.18); border-radius:9999px; outline:none; font-size:12.5px;
+  }
+  .toolbar .tb-count{ font-size:11px; color:var(--ink-dim); font-weight:700; white-space:nowrap; margin-left:auto; }
+
+  .table-wrap{
+    background:var(--panel); border:1px solid var(--border); border-radius:0 0 20px 20px;
+    overflow:auto;
+  }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; min-width:960px; }
+  thead th{
+    text-align:left; padding:13px 14px; font-size:9.5px; font-weight:800;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--ink-dim);
+    border-bottom:1px solid var(--border); white-space:nowrap;
+  }
+  thead th.sortable{ cursor:pointer; user-select:none; }
+  thead th.sortable:hover{ color:#f8ebce; }
+  thead th.sortable .arrow{ opacity:.5; margin-left:3px; }
+  thead th.sortable.active{ color:#f8ebce; }
+  thead th.sortable.active .arrow{ opacity:1; }
+  tbody td{ padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:middle; white-space:nowrap; color:#e3d7c7; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:rgba(227,215,199,0.03); }
+  .inline-edit, .inline-select{
+    width:100%; min-width:88px; padding:6px 7px; background:#030303; color:#e3d7c7;
+    border:1px solid transparent; border-radius:7px; outline:none; font:inherit;
+  }
+  .inline-edit:hover, .inline-edit:focus, .inline-select:hover, .inline-select:focus{
+    border-color:var(--border-strong); background:#0a0806;
+  }
+  .inline-edit[type="date"]{ min-width:128px; }
+  .inline-edit[type="number"]{ min-width:82px; width:92px; }
+  .inline-product{ min-width:150px; color:#f8ebce; font-weight:700; }
+  .inline-category{ display:block; min-width:150px; margin-top:3px; color:var(--ink-faint); font-size:10px; font-weight:600; }
+  .inline-readonly{ color:var(--ink-dim); font-weight:700; white-space:nowrap; }
+  .cell-trigger{
+    display:inline-flex; align-items:center; min-height:24px; padding:2px 0;
+    background:transparent; color:#e3d7c7; border:0; font:inherit; text-align:left;
+  }
+  .cell-trigger:hover{ color:#f8ebce; }
+  .cell-trigger.number{ font-weight:700; }
+  .cell-trigger.product{ color:#f8ebce; font-weight:700; }
+  .cell-trigger.category{ display:block; color:var(--ink-faint); font-size:10px; font-weight:600; }
+  .bulk-count{ display:block; margin-top:3px; color:var(--ink-faint); font-size:10px; font-weight:700; }
+  .cell-edit-wrap{ position:relative; }
+  .cell-editor{
+    position:fixed; left:0; top:0; z-index:80; width:min(260px, calc(100vw - 32px));
+    max-height:min(380px, calc(100vh - 32px));
+    padding:8px; background:#100e0a; border:1px solid var(--border-strong); border-radius:12px;
+    box-shadow:0 18px 50px rgba(0,0,0,.65); box-sizing:border-box; overflow-y:auto; overflow-x:hidden;
+  }
+  .cell-editor-note{
+    padding:6px 10px 4px; font-size:9.5px; font-weight:800; letter-spacing:.08em;
+    color:var(--ink-faint); text-transform:uppercase;
+  }
+  .cell-editor button.option{
+    display:block; width:100%; padding:8px 10px; background:transparent; color:#e3d7c7;
+    border:0; border-radius:8px; font:inherit; font-size:11px; text-align:left;
+  }
+  .cell-editor button.option:hover{ background:rgba(227,215,199,.1); }
+  .cell-editor input{
+    display:block; width:100%; min-width:0; box-sizing:border-box; padding:9px 10px; background:#030303; color:#e3d7c7;
+    border:1px solid var(--border-strong); border-radius:8px; font:inherit; outline:none;
+  }
+  .cell-editor .editor-save{
+    display:block; width:100%; min-width:0; box-sizing:border-box; margin-top:7px; padding:8px 6px; background:var(--accent); color:#030303;
+    border:0; border-radius:8px; font-size:10px; font-weight:800; white-space:nowrap;
+  }
+  .cell-product{ color:#f8ebce; font-weight:700; }
+  .cell-product .cat{ display:block; color:var(--ink-faint); font-size:10px; font-weight:600; margin-top:1px; text-transform:none; }
+  .cell-num{ font-weight:700; }
+  .cell-num.pos{ color:var(--pos); }
+  .cell-num.neg{ color:var(--neg); }
+  .pill{
+    display:inline-flex; align-items:center; padding:4px 11px; border-radius:99px;
+    font-size:10px; font-weight:800; letter-spacing:.03em;
+  }
+  .pill-no{ background:var(--neg-bg); color:#e08a78; }
+  .pill-yes{ background:var(--pos-bg); color:#a9c98d; }
+  .pill-notyet{ background:#7a2416; color:#f3d3c6; }
+  .pill-listed{ background:#2f4a2d; color:#c7e0bc; }
+  .pill-app{ background:#1e4a52; color:#bfe3e8; }
+  .pill-facebook{ background:#1877f2; color:#fff; }
+  .pill-ebay{ background:#f5af02; color:#17120a; }
+  .pill-vinted{ background:#007782; color:#fff; }
+  .row-actions{ text-align:right; white-space:nowrap; vertical-align:middle; }
+  .row-bulk-toggle{
+    background:transparent; border:1px solid var(--border-strong); color:var(--ink-dim);
+    padding:6px 10px; border-radius:9999px; font-size:10px; font-weight:800; letter-spacing:.04em;
+  }
+  .row-bulk-toggle:hover{ color:#f8ebce; border-color:var(--accent); }
+  .row-archive{
+    background:var(--accent); border:1px solid var(--accent); color:#030303;
+    padding:4px 8px; border-radius:9999px; font-size:9px; font-weight:800; letter-spacing:.04em;
+  }
+  .row-archive:hover{ background:var(--accent-dim); border-color:var(--accent-dim); }
+  .row-sold{
+    background:var(--accent); border:1px solid var(--accent); color:#030303;
+    font-size:10px; font-weight:800; letter-spacing:.04em;
+    padding:5px 12px; border-radius:9999px;
+  }
+  .row-sold:hover{ background:var(--accent-dim); border-color:var(--accent-dim); }
+  .row-edit{
+    background:none; border:1px solid var(--border-strong); color:var(--ink-dim);
+    font-size:10px; font-weight:800; letter-spacing:.04em;
+    padding:5px 12px; border-radius:9999px;
+  }
+  .row-edit:hover{ color:#f8ebce; border-color:var(--accent); }
+  .row-remove{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:28px; height:28px; padding:0; background:transparent;
+    border:1px solid var(--border-strong); border-radius:50%;
+    color:var(--ink-dim); font-size:15px; line-height:1;
+  }
+  .row-remove:hover{ color:#fff; background:var(--neg); border-color:var(--neg); }
+  .empty-note{ padding:40px 16px; text-align:center; color:var(--ink-dim); font-size:13px; }
+  .archive-note{ color:var(--ink-dim); font-size:12px; margin-top:-10px; margin-bottom:18px; }
+  .archive-table{ min-width:720px; }
+  body[data-view="dashboard"] #inventory,
+  body[data-view="dashboard"] #sold,
+  body[data-view="inventory"] #overview,
+  body[data-view="inventory"] #trends,
+  body[data-view="inventory"] #performance,
+  body[data-view="inventory"] #sold,
+  body[data-view="sold"] #overview,
+  body[data-view="sold"] #trends,
+  body[data-view="sold"] #performance,
+  body[data-view="sold"] #inventory{ display:none; }
+
+  /* ---------- Add / edit panel ---------- */
+  .panel-overlay{
+    position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.75);
+    display:none; align-items:flex-start; justify-content:center; padding:60px 20px; overflow:auto;
+  }
+  .panel-overlay.open{ display:flex; }
+  .add-panel{
+    width:100%; max-width:580px; background:var(--bg-raised);
+    border:1px solid var(--border-strong); border-radius:24px; padding:30px;
+  }
+  .add-panel h3{ font-size:21px; color:#f8ebce; margin-bottom:6px; font-weight:800; }
+  .add-panel .sub{ font-size:12.5px; color:var(--ink-dim); margin-bottom:22px; }
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+  .field.full{ grid-column:1 / -1; }
+  .field label{ font-size:10px; font-weight:800; letter-spacing:.1em; color:var(--ink-dim); text-transform:uppercase; }
+  .field .hint{ font-size:10.5px; color:var(--ink-faint); font-weight:600; }
+  .field-label-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.manage-cats-btn{
+    background:none; border:0; padding:0; color:var(--ink-dim);
+    font-size:10px; font-weight:800; letter-spacing:.04em; text-decoration:underline;
+    text-underline-offset:2px;
+  }
+  .manage-cats-btn:hover{ color:#f8ebce; }
+  .cat-manage-list{
+    display:flex; flex-direction:column; gap:10px; max-height:340px; overflow-y:auto;
+    margin:2px -8px 18px 0; padding:2px 10px 2px 2px;
+  }
+  .cat-manage-row{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:linear-gradient(135deg, rgba(227,215,199,.055), rgba(3,3,3,.92));
+    border:1px solid rgba(237,210,171,.16); border-radius:16px; padding:14px 15px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+    transition:transform .18s ease, border-color .18s ease, background .18s ease;
+  }
+  .cat-manage-row:hover{
+    transform:translateX(2px); border-color:rgba(227,215,199,.34);
+    background:linear-gradient(135deg, rgba(227,215,199,.09), rgba(3,3,3,.92));
+  }
+  .cat-manage-row .cat-name{ font-size:15px; font-weight:800; color:#f8ebce; letter-spacing:-.01em; }
+  .cat-manage-empty{ font-size:13px; color:var(--ink-faint); padding:10px 4px 18px; }
+  .cat-manage-add{ display:flex; gap:10px; margin-bottom:8px; }
+  .cat-manage-add input{
+    flex:1; min-width:0; padding:13px 15px; background:#030303; color:#f8ebce;
+    border:1px solid rgba(237,210,171,.22); border-radius:14px; font:inherit; outline:none;
+  }
+  .cat-manage-add input:focus{ border-color:var(--accent); box-shadow:0 0 18px rgba(227,215,199,.14); }
+  .cat-manage-add .add-btn{ white-space:nowrap; padding:12px 18px; font-size:11px; }
+  .cat-field{ position:relative; }
+  .cat-popup{
+    position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:60;
+    max-height:230px; overflow-y:auto;
+    background:#100e0a; border:1px solid var(--border-strong); border-radius:12px;
+    box-shadow:0 18px 50px rgba(0,0,0,.65); padding:6px; display:none;
+  }
+  .cat-popup.open{ display:block; }
+  .cat-popup button.option{
+    display:block; width:100%; padding:8px 10px; background:transparent; color:#e3d7c7;
+    border:0; border-radius:8px; font:inherit; font-size:12px; text-align:left;
+  }
+  .cat-popup button.option:hover{ background:rgba(227,215,199,.1); }
+  .cat-popup-empty{ padding:8px 10px; font-size:11px; color:var(--ink-faint); }
+  .cell-editor .manage-cats-link{
+    display:block; width:100%; box-sizing:border-box; margin-top:7px; padding:7px 6px;
+    background:none; border:1px solid var(--border-strong); color:var(--ink-dim);
+    border-radius:8px; font-size:10px; font-weight:800; letter-spacing:.04em; text-align:center;
+  }
+  .cell-editor .manage-cats-link:hover{ color:#f8ebce; border-color:var(--accent); }
+  .field input, .field select, .field textarea{
+    padding:11px 13px; background:#030303; color:#f8ebce;
+    border:1px solid rgba(237,210,171,.22); border-radius:12px; font:inherit; outline:none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--accent); box-shadow:0 0 12px rgba(227,215,199,.16); }
+  .field input[readonly]{ color:var(--ink-dim); background:#0a0806; cursor:not-allowed; }
+  .panel-actions{ display:flex; gap:10px; margin-top:16px; }
+  .panel-actions button{
+    flex:1; padding:12px 16px; border-radius:9999px; font-size:11px; font-weight:800;
+    letter-spacing:.08em; border:1px solid var(--border-strong);
+  }
+  .btn-save{ background:var(--accent); color:#030303; border-color:var(--accent); }
+  .btn-save:hover{ background:var(--accent-dim); }
+  .btn-cancel{ background:transparent; color:var(--ink-dim); }
+  .btn-cancel:hover{ color:var(--ink); }
+  .notice-stack{
+    position:fixed; right:20px; bottom:20px; z-index:220;
+    display:flex; flex-direction:column; gap:10px; width:min(340px, calc(100vw - 40px));
+  }
+  .site-notice{
+    display:flex; align-items:flex-start; gap:10px; padding:13px 15px;
+    background:#100e0a; border:1px solid var(--border-strong); border-left:3px solid var(--warn);
+    border-radius:12px; box-shadow:0 14px 30px rgba(0,0,0,.5); color:#e3d7c7;
+    font-size:12px; line-height:1.45; animation:notice-in .2s ease-out;
+  }
+  .site-notice.success{ border-left-color:var(--pos); }
+  .site-notice strong{ display:block; color:#f8ebce; font-size:10px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:3px; }
+  .notice-close{ margin-left:auto; padding:0 0 0 8px; background:none; border:0; color:var(--ink-dim); font-size:16px; line-height:1; }
+  .notice-close:hover{ color:#f8ebce; }
+  @keyframes notice-in{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+
+  footer{
+    background:rgba(4,4,4,0.92); border-top:1px solid var(--border-strong); padding:25px 0;
+    margin-top:56px; flex-shrink:0;
+  }
+  .footer-inner{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+  .footer-inner span{ font-size:11px; color:var(--ink-dim); letter-spacing:.03em; font-weight:600; }
+
+  @media (max-width:900px){
+    .kpi-row{ grid-template-columns:1fr 1fr; }
+    .kpi-side{ grid-column:1 / -1; flex-direction:row; justify-content:space-around; }
+    .charts{ grid-template-columns:1fr; }
+    .perf-grid{ grid-template-columns:1fr; }
+    nav{ display:none; }
+    .hero-note{ display:none; }
+  }
+</style>
+</head>
+<body data-view="dashboard">
+
+  <div class="marquee">
+    <div class="marquee-track" id="marqueeTrack"></div>
+  </div>
+
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <img class="brand-mark" src="after-logo.png" alt="AFTERFORM">
+        <div>
+          <div class="brand-name">AFTERFORM</div>
+          <div class="brand-sub">Stock &amp; Revenue</div>
+        </div>
+      </div>
+      <nav>
+        <a href="#overview">Overview</a>
+        <a href="#trends">Trends</a>
+        <a href="#performance">Performance</a>
+        <a href="#sold">Sold archive</a>
+      </nav>
+      <div class="header-actions">
+        <span id="syncStatus" style="font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint);"></span>
+        <button class="header-cta" id="openAddBtn">Dashboard</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <section class="hero" id="overview">
+      <div class="hero-top">
+        <div>
+          <div class="badge-live"><span aria-hidden="true">💸</span> Live ledger</div>
+          <h1>Buy. List.<br>Sell.</h1>
+        </div>
+        <p class="hero-note">Tracking resale stock across Facebook, eBay and Vinted — cost, listing status, and net payout in one place.</p>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-card flat" id="kpiRevenueCard">
+          <div class="kpi-label">Revenue</div>
+          <div class="kpi-value flat" id="statRevenue">€0.00</div>
+          <div class="kpi-sub" id="statRevenueSub">Gross, sold items</div>
+        </div>
+        <div class="kpi-card neg" id="kpiProfitCard">
+          <div class="kpi-label">Net profit</div>
+          <div class="kpi-value neg" id="statProfit">-€0.00</div>
+          <div class="kpi-sub" id="statMargin">0% margin</div>
+        </div>
+        <div class="kpi-card flat" id="kpiPaidCard">
+          <div class="kpi-label">Paid out</div>
+          <div class="kpi-value flat" id="statPaid">€0.00</div>
+          <div class="kpi-sub" id="statPaidSub">Cost of stock</div>
+        </div>
+        <div class="kpi-side">
+          <div class="pair"><span class="num" id="statSold">0</span><span class="lbl">Sold</span></div>
+          <div class="pair"><span class="num" id="statNotSold">0</span><span class="lbl">Not sold</span></div>
+          <div class="pair"><span class="num" id="statAvgDays">—</span><span class="lbl">Avg. days to sell</span></div>
+          <div class="pair"><span class="num warn" id="statStale">0</span><span class="lbl">Stale listings</span></div>
+        </div>
+      </div>
+
+      <div class="goal-bar">
+        <div class="goal-label" id="goalMonthLabel">This month</div>
+        <div class="goal-track"><div class="goal-fill" id="goalFill" style="width:0%"></div></div>
+        <div class="goal-figs" id="goalFigs">€0.00 / €0.00</div>
+        <button class="goal-edit" id="goalEditBtn">Set goal</button>
+      </div>
+    </section>
+
+    <section class="charts" id="trends">
+      <div class="chart-card">
+        <div class="chart-head">
+          <div class="chart-title">Net profit over time</div>
+          <div class="chart-sub" id="profitChartSub">—</div>
+        </div>
+        <svg id="profitChart" viewBox="0 0 620 220" width="100%" height="220"></svg>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <div class="chart-title">Monthly revenue</div>
+          <div class="chart-sub" id="monthChartSub">—</div>
+        </div>
+        <svg id="monthChart" viewBox="0 0 620 220" width="100%" height="220"></svg>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <div class="chart-title">Sold by platform</div>
+          <div class="chart-sub" id="appChartSub">—</div>
+        </div>
+        <div class="donut-wrap" id="appChart"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <div class="chart-title">Profit by category</div>
+          <div class="chart-sub" id="catChartSub">—</div>
+        </div>
+        <div class="hbar-chart" id="catChart"></div>
+      </div>
+    </section>
+
+    <section id="performance">
+      <div class="perf-grid">
+        <div class="perf-card">
+          <div class="perf-title">Top performers</div>
+          <div class="perf-note">Best net profit, sold items</div>
+          <div id="perfTop"></div>
+        </div>
+        <div class="perf-card">
+          <div class="perf-title">Needs attention</div>
+          <div class="perf-note">Losses and listings sitting unsold 30+ days</div>
+          <div id="perfBottom"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="inventory">
+      <div class="section-head">
+        <div class="section-title">Inventory</div>
+        <div class="section-actions">
+          <button class="add-btn" id="openAddBtn2">+ Add item</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input type="search" id="fSearch" placeholder="Search product or category…">
+        <select id="fStatus">
+          <option value="all">All statuses</option>
+          <option value="sold">Sold</option>
+          <option value="notsold">Not sold</option>
+          <option value="listed">Listed</option>
+          <option value="notlisted">Not listed</option>
+          <option value="stale">Stale (30+ days)</option>
+        </select>
+        <select id="fApp">
+          <option value="all">All platforms</option>
+          <option value="Facebook">Facebook</option>
+          <option value="eBay">eBay</option>
+          <option value="Vinted">Vinted</option>
+          <option value="">Unassigned</option>
+        </select>
+        <span class="tb-count" id="tbCount">0 items</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="sortable" data-sort="dateAdded">Date added <span class="arrow">↕</span></th>
+              <th class="sortable" data-sort="dateSold">Date sold <span class="arrow">↕</span></th>
+              <th class="sortable" data-sort="product">Product <span class="arrow">↕</span></th>
+              <th>Status</th>
+              <th class="sortable" data-sort="soldFor">Sold for <span class="arrow">↕</span></th>
+              <th class="sortable" data-sort="boughtFor">Bought for <span class="arrow">↕</span></th>
+              <th class="sortable" data-sort="profit">Net profit <span class="arrow">↕</span></th>
+              <th>Payment</th>
+              <th>App sold</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="empty-note" id="emptyNote" style="display:none;">No stock yet — add your first item.</div>
+      </div>
+    </section>
+
+    <section class="section" id="sold">
+      <div class="section-head">
+        <div class="section-title">Sold archive</div>
+        <span class="tb-count" id="archiveCount">0 sold</span>
+      </div>
+      <p class="archive-note">Completed sales move here automatically, keeping active inventory focused on stock that still needs attention.</p>
+      <div class="table-wrap">
+        <table class="archive-table">
+          <thead>
+            <tr>
+              <th>Date sold</th>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Sold for</th>
+              <th>Bought for</th>
+              <th>Net profit</th>
+              <th>Payment</th>
+              <th>Platform</th>
+            </tr>
+          </thead>
+          <tbody id="archiveBody"></tbody>
+        </table>
+        <div class="empty-note" id="archiveEmpty">No completed sales yet.</div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <span>AFTERFORM — internal stock ledger</span>
+      <span id="footerCount">0 items tracked</span>
+    </div>
+  </footer>
+
+  <div class="notice-stack" id="noticeStack" aria-live="polite"></div>
+
+  <div class="panel-overlay" id="panelOverlay">
+    <div class="add-panel">
+      <h3>Add stock</h3>
+      <div class="sub">Create new stock — each unit shows up as its own row below, which you can edit individually once it's listed or sold.</div>
+      <div class="field-grid">
+        <div class="field full">
+          <label>Product</label>
+          <input type="text" id="fProduct" placeholder="e.g. AirPods Pro 3">
+        </div>
+        <div class="field full">
+          <div class="field-label-row">
+            <label>Category</label>
+            <button type="button" class="manage-cats-btn" id="manageCatsBtn1">Manage categories</button>
+          </div>
+          <div class="cat-field">
+            <input type="text" id="fCategory" placeholder="Click for saved categories, or type a new one" autocomplete="off">
+            <div class="cat-popup" id="fCategoryPopup"></div>
+          </div>
+          <datalist id="categoryList"></datalist>
+        </div>
+        <div class="field">
+          <label>Paid in total (€)</label>
+          <input type="number" step="0.01" id="fTotalPaid" placeholder="0.00" oninput="updatePerUnitHint()">
+        </div>
+        <div class="field">
+          <label>Quantity</label>
+          <input type="number" step="1" min="1" id="fQuantity" value="1" oninput="updatePerUnitHint()">
+        </div>
+        <div class="field full" id="perUnitHintWrap" style="margin-top:-6px;">
+          <span class="hint" id="fPerUnitHint">Total paid is split evenly across the quantity — covers bulk pricing and shipping.</span>
+        </div>
+        <div class="field">
+          <label>Listed?</label>
+          <select id="fListed">
+            <option value="notyet">Not yet</option>
+            <option value="listed">Listed</option>
+          </select>
+        </div>
+      </div>
+      <div class="panel-actions">
+        <button class="btn-cancel" id="cancelAddBtn">Cancel</button>
+        <button class="btn-save" id="saveAddBtn">Add to inventory</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-overlay" id="editOverlay">
+    <div class="add-panel">
+      <h3>Edit item</h3>
+      <div class="sub">Update this unit's status or sale price — other units from the same stock aren't affected.</div>
+      <div class="field-grid">
+        <div class="field full">
+          <label>Product</label>
+          <input type="text" id="eProduct">
+        </div>
+        <div class="field">
+          <div class="field-label-row">
+            <label>Category</label>
+            <button type="button" class="manage-cats-btn" id="manageCatsBtn2">Manage</button>
+          </div>
+          <div class="cat-field">
+            <input type="text" id="eCategory" autocomplete="off">
+            <div class="cat-popup" id="eCategoryPopup"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Bought for (€)</label>
+          <input type="number" step="0.01" id="eBought">
+        </div>
+        <div class="field">
+          <label>Listed?</label>
+          <select id="eListed">
+            <option value="notyet">Not yet</option>
+            <option value="listed">Listed</option>
+          </select>
+        </div>
+        <input type="hidden" id="eDateListed">
+        <div class="field">
+          <label>Sold?</label>
+          <select id="eSold">
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </div>
+        <input type="hidden" id="eDateSold">
+        <div class="field">
+          <label>Sold for (€)</label>
+          <input type="number" step="0.01" id="eSoldFor">
+        </div>
+        <div class="field">
+          <label>App sold</label>
+          <select id="eApp">
+            <option value="">—</option>
+            <option>Facebook</option>
+            <option>eBay</option>
+            <option>Vinted</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Payment type</label>
+          <div id="ePaymentDisplay" style="padding:11px 13px; background:#0a0806; color:var(--ink-dim); border:1px solid rgba(237,210,171,.14); border-radius:12px; font-size:14px;">—</div>
+        </div>
+      </div>
+      <div class="panel-actions">
+        <button class="btn-cancel" id="cancelEditBtn">Cancel</button>
+        <button class="btn-save" id="saveEditBtn">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-overlay" id="goalOverlay">
+    <div class="add-panel" style="max-width:380px;">
+      <h3>Monthly revenue goal</h3>
+      <div class="sub">Used to track progress against this calendar month's sold revenue.</div>
+      <div class="field full">
+        <label>Goal (€)</label>
+        <input type="number" step="1" min="0" id="gGoalInput" placeholder="e.g. 500">
+      </div>
+      <div class="panel-actions">
+        <button class="btn-cancel" id="cancelGoalBtn">Cancel</button>
+        <button class="btn-save" id="saveGoalBtn">Save goal</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-overlay" id="categoryOverlay">
+    <div class="add-panel" style="max-width:680px;">
+      <h3>Manage categories</h3>
+      <div class="sub">These show up as quick picks wherever you set a category — add the ones you actually use, remove the ones you don't.</div>
+      <div class="cat-manage-list" id="categoryManageList"></div>
+      <div class="cat-manage-add">
+        <input type="text" id="cNewCategory" placeholder="New category name">
+        <button type="button" class="add-btn" id="addCategoryBtn">+ Add</button>
+      </div>
+      <div class="panel-actions">
+        <button class="btn-save" id="closeCategoryBtn" style="flex:1;">Done</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const STORAGE_KEY = 'afterform_stock_v1';
+  const GOAL_KEY = 'afterform_goal_v1';
+  const CATEGORY_KEY = 'afterform_categories_v1';
+  const STALE_DAYS = 30;
+
+  function loadCategories(){
+    const raw = localStorage.getItem(CATEGORY_KEY);
+    if (raw){
+      try{
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }catch(e){}
+    }
+    return ['Electronics','Clothing','Shoes','Accessories','Collectibles','Other'];
+  }
+  // ---- Server persistence (Vercel KV via /api/data) ----
+  // localStorage stays as an instant local cache; the API call is the
+  // durable copy that survives clearing the browser / switching devices.
+  let syncTimer = null;
+  let syncStatusEl = null;
+  function setSyncStatus(text){
+    if (!syncStatusEl) syncStatusEl = document.getElementById('syncStatus');
+    if (syncStatusEl) syncStatusEl.textContent = text;
+  }
+  function syncToServer(){
+    clearTimeout(syncTimer);
+    setSyncStatus('Saving…');
+    syncTimer = setTimeout(() => {
+      fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, goal, categories })
+      })
+        .then(r => { if (!r.ok) throw new Error('save failed'); setSyncStatus('Saved'); })
+        .catch(() => setSyncStatus('Save failed — check connection'));
+    }, 400);
+  }
+  function loadFromServer(){
+    fetch('/api/data')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && (data.items || data.categories || data.goal)){
+          items = data.items || items;
+          goal = data.goal || goal;
+          categories = data.categories || categories;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+          localStorage.setItem(GOAL_KEY, String(goal));
+          localStorage.setItem(CATEGORY_KEY, JSON.stringify(categories));
+          renderCategoryDatalist();
+          renderAll();
+        }
+        setSyncStatus('Synced');
+      })
+      .catch(() => setSyncStatus('Offline — using local copy'));
+  }
+
+  function saveCategories(){ localStorage.setItem(CATEGORY_KEY, JSON.stringify(categories)); syncToServer(); }
+
+  function renderCategoryDatalist(){
+    const dl = document.getElementById('categoryList');
+    dl.innerHTML = categories.map(c => `<option value="${c.replace(/"/g,'&quot;')}">`).join('');
+  }
+
+  function setupCategoryPopup(input, popup){
+    function renderPopup(){
+      const q = input.value.trim().toLowerCase();
+      const matches = categories.filter(c => c.toLowerCase().includes(q));
+      if (!matches.length){
+        popup.innerHTML = `<div class="cat-popup-empty">${categories.length ? 'No match — hit save to use “' + (input.value.trim() || '…') + '”' : 'No saved categories yet — type one and save, or manage categories above.'}</div>`;
+        return;
+      }
+      popup.innerHTML = '';
+      matches.forEach(cat => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'option';
+        option.textContent = cat;
+        option.addEventListener('click', () => {
+          input.value = cat;
+          popup.classList.remove('open');
+        });
+        popup.appendChild(option);
+      });
+    }
+    input.addEventListener('focus', () => { renderPopup(); popup.classList.add('open'); });
+    input.addEventListener('click', () => { renderPopup(); popup.classList.add('open'); });
+    input.addEventListener('input', () => { renderPopup(); popup.classList.add('open'); });
+  }
+  document.addEventListener('click', (event) => {
+    document.querySelectorAll('.cat-popup.open').forEach(popup => {
+      const wrap = popup.closest('.cat-field');
+      if (wrap && !wrap.contains(event.target)) popup.classList.remove('open');
+    });
+  });
+
+  function renderCategoryManageList(){
+    const wrap = document.getElementById('categoryManageList');
+    if (!categories.length){
+      wrap.innerHTML = '<div class="cat-manage-empty">No categories yet — add your first one below.</div>';
+      return;
+    }
+    wrap.innerHTML = categories.map(c => `
+      <div class="cat-manage-row">
+        <span class="cat-name">${c}</span>
+        <button type="button" class="row-remove" data-remove-cat="${c.replace(/"/g,'&quot;')}" title="Remove">×</button>
+      </div>
+    `).join('');
+    wrap.querySelectorAll('[data-remove-cat]').forEach(btn => {
+      btn.addEventListener('click', () => removeCategory(btn.dataset.removeCat));
+    });
+  }
+
+  function addCategory(name){
+    const clean = (name || '').trim();
+    if (!clean) return;
+    if (categories.some(c => c.toLowerCase() === clean.toLowerCase())) return;
+    categories.push(clean);
+    saveCategories();
+    renderCategoryDatalist();
+    renderCategoryManageList();
+  }
+
+  function removeCategory(name){
+    categories = categories.filter(c => c !== name);
+    saveCategories();
+    renderCategoryDatalist();
+    renderCategoryManageList();
+  }
+
+  function loadItems(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw){
+      try{
+        const parsed = JSON.parse(raw);
+        return parsed.map(it => {
+          return Object.assign({ category:'', fees:0 }, it);
+        });
+      }catch(e){}
+    }
+    return [
+      {
+        id:'i_seed1', product:'AirPods Pro 3', category:'Electronics', dateAdded:'2026-09-06', dateListed:'2026-09-06', dateSold:'',
+        sold:'no', listed:'notyet', soldFor:0, fees:0, boughtFor:30.02, payment:'Cash',
+        app:'Vinted'
+      }
+    ];
+  }
+  function saveItems(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); syncToServer(); }
+  function loadGoal(){ return Number(localStorage.getItem(GOAL_KEY)) || 0; }
+  function saveGoal(v){ localStorage.setItem(GOAL_KEY, String(v)); syncToServer(); }
+
+  let items = loadItems();
+  let goal = loadGoal();
+  let categories = loadCategories();
+  renderCategoryDatalist();
+  setupCategoryPopup(document.getElementById('fCategory'), document.getElementById('fCategoryPopup'));
+  setupCategoryPopup(document.getElementById('eCategory'), document.getElementById('eCategoryPopup'));
+  let sortKey = 'dateListed';
+  let sortDir = 'desc';
+  const expandedBatches = new Set();
+
+  function fmtEuro(n){
+    const sign = n < 0 ? '-' : '';
+    return sign + '€' + Math.abs(n).toFixed(2);
+  }
+  function fmtDate(d){
+    if (!d) return '—';
+    const dt = new Date(d + 'T00:00:00');
+    if (isNaN(dt)) return d;
+    return dt.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  }
+  function daysBetween(a, b){
+    const dA = new Date(a + 'T00:00:00'), dB = new Date(b + 'T00:00:00');
+    if (isNaN(dA) || isNaN(dB)) return null;
+    return Math.round((dB - dA) / 86400000);
+  }
+  function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+  function itemMetrics(it){
+    const soldFor = Number(it.soldFor) || 0;
+    const boughtFor = Number(it.boughtFor) || 0;
+    const netRevenue = it.sold === 'yes' ? soldFor : 0;
+    const profit = it.sold === 'yes' ? netRevenue - boughtFor : -boughtFor;
+    const roi = boughtFor > 0 ? (profit / boughtFor) * 100 : 0;
+    const daysToSell = (it.sold === 'yes' && it.dateListed && it.dateSold) ? daysBetween(it.dateListed, it.dateSold) : null;
+    const isStale = it.listed === 'listed' && it.sold !== 'yes' && it.dateListed
+      ? (daysBetween(it.dateListed, todayStr()) || 0) >= STALE_DAYS
+      : false;
+    return { soldFor, boughtFor, netRevenue, profit, roi, daysToSell, isStale };
+  }
+
+  function computeStats(){
+    let revenue = 0, paid = 0, sold = 0, notSold = 0, stale = 0;
+    let daysSum = 0, daysCount = 0;
+    items.forEach(it => {
+      const m = itemMetrics(it);
+      paid += m.boughtFor;
+      if (it.sold === 'yes'){
+        revenue += m.soldFor; sold++;
+        if (m.daysToSell !== null){ daysSum += m.daysToSell; daysCount++; }
+      } else { notSold++; }
+      if (m.isStale) stale++;
+    });
+    const netProfit = revenue - paid;
+    const margin = paid > 0 ? (netProfit / paid) * 100 : 0;
+    const avgDays = daysCount > 0 ? Math.round(daysSum / daysCount) : null;
+    return { revenue, paid, netProfit, margin, sold, notSold, stale, avgDays };
+  }
+
+  function renderStats(){
+    const s = computeStats();
+    document.getElementById('statRevenue').textContent = fmtEuro(s.revenue);
+    const profitEl = document.getElementById('statProfit');
+    profitEl.textContent = fmtEuro(s.netProfit);
+    const profitCls = s.netProfit > 0 ? 'pos' : s.netProfit < 0 ? 'neg' : 'flat';
+    profitEl.className = 'kpi-value ' + profitCls;
+    document.getElementById('kpiProfitCard').className = 'kpi-card ' + (s.netProfit >= 0 ? 'pos' : 'neg');
+    document.getElementById('statMargin').textContent = (s.margin >= 0 ? '' : '') + s.margin.toFixed(1) + '% margin on cost';
+    document.getElementById('statPaid').textContent = fmtEuro(s.paid);
+    document.getElementById('statSold').textContent = s.sold;
+    document.getElementById('statNotSold').textContent = s.notSold;
+    document.getElementById('statAvgDays').textContent = s.avgDays === null ? '—' : s.avgDays + 'd';
+    document.getElementById('statStale').textContent = s.stale;
+    document.getElementById('footerCount').textContent = items.length + (items.length === 1 ? ' item tracked' : ' items tracked');
+
+    const now = new Date();
+    const ym = now.toISOString().slice(0,7);
+    const monthRevenue = items.filter(it => it.sold === 'yes' && (it.dateSold || '').slice(0,7) === ym)
+      .reduce((sum, it) => sum + (Number(it.soldFor) || 0), 0);
+    document.getElementById('goalMonthLabel').textContent = now.toLocaleDateString('en-GB', { month:'long', year:'numeric' });
+    document.getElementById('goalFigs').textContent = fmtEuro(monthRevenue) + ' / ' + (goal > 0 ? fmtEuro(goal) : 'no goal set');
+    document.getElementById('goalFill').style.width = goal > 0 ? Math.min(100, (monthRevenue / goal) * 100) + '%' : '0%';
+  }
+
+  function statusPill(it){
+    if (it.sold === 'yes') return '<span class="pill pill-yes">Sold</span>';
+    if (it.listed === 'listed') return '<span class="pill pill-listed">Listed</span>';
+    return '<span class="pill pill-notyet">Not listed</span>';
+  }
+
+  function appPillClass(app){
+    if (app === 'Facebook') return 'pill-facebook';
+    if (app === 'eBay') return 'pill-ebay';
+    if (app === 'Vinted') return 'pill-vinted';
+    return 'pill-app';
+  }
+
+  function isSaleComplete(it){
+    return it.sold === 'yes' && Boolean(
+      (it.product || '').trim() &&
+      it.dateSold &&
+      (Number(it.soldFor) || 0) > 0 &&
+      (it.payment || '').trim() &&
+      (it.app || '').trim()
+    );
+  }
+
+  function missingSaleFields(it){
+    const missing = [];
+    if (!(it.product || '').trim()) missing.push('product');
+    if (!it.dateSold) missing.push('date sold');
+    if (!(Number(it.soldFor) || 0)) missing.push('sold price');
+    if (!(it.payment || '').trim()) missing.push('payment');
+    if (!(it.app || '').trim()) missing.push('platform');
+    return missing;
+  }
+
+  function playNoticeSound(){
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const audio = new AudioContextClass();
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(520, audio.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(390, audio.currentTime + .12);
+    gain.gain.setValueAtTime(.045, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + .16);
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+    oscillator.start();
+    oscillator.stop(audio.currentTime + .16);
+    oscillator.addEventListener('ended', () => audio.close(), { once:true });
+  }
+
+  function playSuccessSound(){
+    const audio = new Audio('sold.mp3');
+    audio.volume = .5;
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  }
+
+  function showNotice(message, title, type){
+    const stack = document.getElementById('noticeStack');
+    const notice = document.createElement('div');
+    notice.className = 'site-notice' + (type ? ' ' + type : '');
+    notice.innerHTML = `<div><strong>${title || 'Action needed'}</strong>${message}</div><button class="notice-close" type="button" aria-label="Dismiss">&times;</button>`;
+    notice.querySelector('.notice-close').addEventListener('click', () => notice.remove());
+    stack.appendChild(notice);
+    type === 'success' ? playSuccessSound() : playNoticeSound();
+    setTimeout(() => notice.remove(), 6000);
+  }
+
+  function matchesFilters(it){
+    if (it.archived) return false;
+    const q = document.getElementById('fSearch').value.trim().toLowerCase();
+    const status = document.getElementById('fStatus').value;
+    const app = document.getElementById('fApp').value;
+    const m = itemMetrics(it);
+    if (q){
+      const hay = ((it.product||'') + ' ' + (it.category||'')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (status === 'sold' && it.sold !== 'yes') return false;
+    if (status === 'notsold' && it.sold === 'yes') return false;
+    if (status === 'listed' && it.listed !== 'listed') return false;
+    if (status === 'notlisted' && it.listed === 'listed') return false;
+    if (status === 'stale' && !m.isStale) return false;
+    if (app !== 'all' && (it.app || '') !== app) return false;
+    return true;
+  }
+
+  function applyInlineValue(it, key, value){
+    if (key === 'soldFor' || key === 'boughtFor') it[key] = Number(value) || 0;
+    else if (key === 'status'){
+      if (value === 'sold'){
+        it.sold = 'yes';
+        it.listed = 'listed';
+        if (!it.dateSold) it.dateSold = todayStr();
+      } else {
+        it.sold = 'no';
+        it.listed = value === 'listed' ? 'listed' : 'notyet';
+        if (value !== 'sold') it.dateSold = '';
+      }
+    } else if (key === 'app'){
+      it.app = value;
+      it.payment = paymentForApp(value);
+    } else it[key] = value;
+  }
+
+  function saveInlineItem(it, key, value){
+    applyInlineValue(it, key, value);
+    saveItems();
+    renderAll();
+  }
+
+  function saveInlineItems(group, key, value){
+    group.forEach(it => applyInlineValue(it, key, value));
+    saveItems();
+    renderAll();
+  }
+
+  function openCellEditor(button, it, key, group){
+    document.querySelectorAll('.cell-editor').forEach(editor => editor.remove());
+    const editor = document.createElement('div');
+    editor.className = 'cell-editor';
+    const choices = key === 'status' ? (group && group.length > 1 ? [
+      ['notyet','Not listed'], ['listed','Listed']
+    ] : [
+      ['notyet','Not listed'], ['listed','Listed'], ['sold','Sold']
+    ]) : key === 'payment' ? [
+      ['','Choose payment'], ['Cash','Cash'], ['Card / PayPal','Card / PayPal']
+    ] : key === 'app' ? [
+      ['','Choose platform'], ['Facebook','Facebook'], ['eBay','eBay'], ['Vinted','Vinted']
+    ] : null;
+    if (choices){
+      choices.forEach(([value, label]) => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'option';
+        option.textContent = label;
+        option.addEventListener('click', () => {
+          group && group.length > 1 ? saveInlineItems(group, key, value) : saveInlineItem(it, key, value);
+          editor.remove();
+        });
+        editor.appendChild(option);
+      });
+    } else {
+      if (key === 'category'){
+        // Category picker: show only the saved category list and Manage categories.
+        if (categories.length){
+          categories.forEach(cat => {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'option';
+            option.textContent = cat;
+            option.addEventListener('click', () => {
+              group && group.length > 1 ? saveInlineItems(group, key, cat) : saveInlineItem(it, key, cat);
+              editor.remove();
+            });
+            editor.appendChild(option);
+          });
+        }
+        const manageLink = document.createElement('button');
+        manageLink.type = 'button';
+        manageLink.className = 'manage-cats-link';
+        manageLink.textContent = 'Manage categories';
+        manageLink.addEventListener('click', () => { editor.remove(); openCategoryManager(); });
+        editor.appendChild(manageLink);
+      } else {
+        const input = document.createElement('input');
+        input.type = key === 'soldFor' || key === 'boughtFor' ? 'number' : key === 'dateListed' || key === 'dateSold' ? 'date' : 'text';
+        if (input.type === 'number') input.step = '0.01';
+        input.value = it[key] || '';
+        const save = document.createElement('button');
+        save.type = 'button';
+        save.className = 'editor-save';
+        save.textContent = 'Save change';
+        save.addEventListener('click', () => {
+          group && group.length > 1 ? saveInlineItems(group, key, input.value) : saveInlineItem(it, key, input.value);
+          editor.remove();
+        });
+        input.addEventListener('keydown', event => { if (event.key === 'Enter') save.click(); });
+        editor.appendChild(input);
+        editor.appendChild(save);
+        setTimeout(() => { input.focus(); input.select(); }, 0);
+      }
+    }
+    button.parentElement.appendChild(editor);
+    const anchor = button.getBoundingClientRect();
+    const popup = editor.getBoundingClientRect();
+    const margin = 12;
+    let left = Math.min(anchor.left, window.innerWidth - popup.width - margin);
+    let top = anchor.bottom + 8;
+    if (top + popup.height > window.innerHeight - margin) top = anchor.top - popup.height - 8;
+    editor.style.left = Math.max(margin, left) + 'px';
+    editor.style.top = Math.max(margin, top) + 'px';
+  }
+
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.cell-edit-wrap')){
+      document.querySelectorAll('.cell-editor').forEach(editor => editor.remove());
+    }
+  });
+
+  function sortedFilteredItems(){
+    const filtered = items.filter(matchesFilters);
+    const dir = sortDir === 'asc' ? 1 : -1;
+    filtered.sort((a, b) => {
+      let va, vb;
+      if (sortKey === 'profit'){ va = itemMetrics(a).profit; vb = itemMetrics(b).profit; }
+      else if (sortKey === 'product'){ va = (a.product||'').toLowerCase(); vb = (b.product||'').toLowerCase(); }
+      else if (sortKey === 'dateAdded' || sortKey === 'dateListed' || sortKey === 'dateSold'){ va = a[sortKey] || ''; vb = b[sortKey] || ''; }
+      else { va = Number(a[sortKey]) || 0; vb = Number(b[sortKey]) || 0; }
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+    return filtered;
+  }
+
+  function renderTable(){
+    const body = document.getElementById('tableBody');
+    const emptyNote = document.getElementById('emptyNote');
+    body.innerHTML = '';
+    const list = sortedFilteredItems();
+    const displayRows = [];
+    const bulkGroups = new Map();
+    list.forEach(it => {
+      if (it.sold === 'no' && it.stockId){
+        if (!bulkGroups.has(it.stockId)){
+          const group = { item:it, items:[], bulkId:it.stockId };
+          bulkGroups.set(it.stockId, group);
+        }
+        bulkGroups.get(it.stockId).items.push(it);
+      } else {
+        displayRows.push({ item:it, items:[it] });
+      }
+    });
+    const seenBatches = new Set();
+    list.forEach(it => {
+      if (it.sold !== 'no' || !it.stockId || seenBatches.has(it.stockId)) return;
+      seenBatches.add(it.stockId);
+      const group = bulkGroups.get(it.stockId);
+      if (expandedBatches.has(it.stockId)){
+        group.items.forEach((unit, index) => displayRows.push({ item:unit, items:[unit], bulkId:it.stockId, expanded:true, expandedFirst:index === 0 }));
+      } else {
+        displayRows.push(group);
+      }
+    });
+    const batchCount = displayRows.filter(row => row.items.length > 1).length;
+    document.getElementById('tbCount').textContent = list.length + (list.length === 1 ? ' item' : ' items') + (batchCount ? ' · ' + batchCount + ' batch' + (batchCount === 1 ? '' : 'es') : '');
+    if (!list.length){
+      emptyNote.style.display = 'block';
+      emptyNote.textContent = items.length ? 'No items match your filters.' : 'No stock yet — add your first item.';
+      return;
+    }
+    emptyNote.style.display = 'none';
+    displayRows.forEach(row => {
+      const it = row.item;
+      const group = row.items;
+      const isBulk = group.length > 1;
+      const m = itemMetrics(it);
+      const totalBought = group.reduce((sum, unit) => sum + (Number(unit.boughtFor) || 0), 0);
+      const tr = document.createElement('tr');
+      const profitCls = it.sold === 'yes' ? (m.profit >= 0 ? 'pos' : 'neg') : '';
+      tr.innerHTML = `
+        <td><div class="cell-edit-wrap"><button class="cell-trigger" type="button" data-cell-key="dateListed">${it.dateListed ? fmtDate(it.dateListed) : '—'}</button></div>${m.isStale ? '<div><span class="stale-tag">Stale</span></div>' : ''}</td>
+        <td><div class="cell-edit-wrap"><button class="cell-trigger" type="button" data-cell-key="dateSold">${it.dateSold ? fmtDate(it.dateSold) : '—'}</button></div></td>
+        <td class="cell-product">
+          <div class="cell-edit-wrap"><button class="cell-trigger product" type="button" data-cell-key="product">${it.product || '—'}</button></div>
+          <div class="cell-edit-wrap"><button class="cell-trigger category" type="button" data-cell-key="category">${it.category || 'Add category'}</button></div>
+          ${isBulk ? `<span class="bulk-count">${group.length} units</span>` : ''}
+        </td>
+        <td><div class="cell-edit-wrap"><button class="cell-trigger" type="button" data-cell-key="status">${statusPill(it)}</button></div></td>
+        <td class="cell-num">${isBulk ? '<span class="inline-readonly">Per unit</span>' : `<div class="cell-edit-wrap"><button class="cell-trigger number" type="button" data-cell-key="soldFor">${fmtEuro(m.soldFor)}</button></div>`}</td>
+        <td class="cell-num">${isBulk ? '<span class="inline-readonly">' + fmtEuro(totalBought) + ' total</span>' : `<div class="cell-edit-wrap"><button class="cell-trigger number" type="button" data-cell-key="boughtFor">${fmtEuro(m.boughtFor)}</button></div>`}</td>
+        <td class="cell-num ${profitCls}"><span class="inline-readonly">${it.sold === 'yes' ? fmtEuro(m.profit) : '—'}</span></td>
+        <td>${isBulk ? '<span class="inline-readonly">Per unit</span>' : `<div class="cell-edit-wrap"><button class="cell-trigger" type="button" data-cell-key="payment">${it.payment || '—'}</button></div>`}</td>
+        <td>${isBulk ? '<span class="inline-readonly">Per unit</span>' : `<div class="cell-edit-wrap"><button class="cell-trigger" type="button" data-cell-key="app">${it.app ? `<span class="pill ${appPillClass(it.app)}">${it.app}</span>` : '—'}</button></div>`}</td>
+        <td class="row-actions">
+          ${row.bulkId && (isBulk || row.expandedFirst) ? `<button class="row-bulk-toggle" data-stock-id="${row.bulkId}">${row.expanded ? 'Collapse' : 'View units'}</button>` : ''}
+          ${it.sold === 'yes' && !it.archived ? '<button class="row-archive" title="Move to sold archive">Sold</button>' : ''}
+          <button class="row-remove" data-id="${it.id}" title="${isBulk ? 'Delete entire batch' : 'Remove item'}">&times;</button>
+        </td>
+      `;
+      tr.querySelectorAll('[data-cell-key]').forEach(button => {
+        button.addEventListener('click', () => openCellEditor(button, it, button.dataset.cellKey, group));
+      });
+      const bulkToggle = tr.querySelector('.row-bulk-toggle');
+      if (bulkToggle){
+        bulkToggle.addEventListener('click', () => {
+          const stockId = bulkToggle.dataset.stockId;
+          if (expandedBatches.has(stockId)) expandedBatches.delete(stockId);
+          else expandedBatches.add(stockId);
+          renderTable();
+        });
+      }
+      const archiveButton = tr.querySelector('.row-archive');
+      if (archiveButton){
+        archiveButton.addEventListener('click', () => {
+          const missing = missingSaleFields(it);
+          if (missing.length){
+            showNotice('Complete: ' + missing.join(', ') + '.', 'Sale not complete');
+            return;
+          }
+          it.archived = true;
+          saveItems();
+          renderAll();
+          showNotice('Moved to Sold archive.', 'Sale archived', 'success');
+        });
+      }
+      tr.querySelector('.row-remove').addEventListener('click', () => {
+        const removeIds = new Set(group.map(unit => unit.id));
+        items = items.filter(x => !removeIds.has(x.id));
+        saveItems();
+        renderAll();
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  function renderSoldArchive(){
+    const body = document.getElementById('archiveBody');
+    const empty = document.getElementById('archiveEmpty');
+    const sold = items.filter(it => it.archived && isSaleComplete(it)).sort((a,b) => (b.dateSold || '').localeCompare(a.dateSold || ''));
+    body.innerHTML = '';
+    document.getElementById('archiveCount').textContent = sold.length + (sold.length === 1 ? ' sold item' : ' sold items');
+    empty.style.display = sold.length ? 'none' : 'block';
+    sold.forEach(it => {
+      const m = itemMetrics(it);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${fmtDate(it.dateSold)}</td>
+        <td class="cell-product">${it.product}</td>
+        <td>${it.category || '—'}</td>
+        <td class="cell-num">${fmtEuro(m.soldFor)}</td>
+        <td class="cell-num">${fmtEuro(m.boughtFor)}</td>
+        <td class="cell-num ${m.profit >= 0 ? 'pos' : 'neg'}">${fmtEuro(m.profit)}</td>
+        <td>${it.payment}</td>
+        <td><span class="pill ${appPillClass(it.app)}">${it.app}</span></td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+
+  function updateSortHeaders(){
+    document.querySelectorAll('th.sortable').forEach(th => {
+      const key = th.dataset.sort;
+      const arrow = th.querySelector('.arrow');
+      th.classList.toggle('active', key === sortKey);
+      if (key === sortKey){ arrow.textContent = sortDir === 'asc' ? '↑' : '↓'; }
+      else { arrow.textContent = '↕'; }
+    });
+  }
+
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if (sortKey === key){ sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+      else { sortKey = key; sortDir = key === 'product' ? 'asc' : 'desc'; }
+      updateSortHeaders();
+      renderTable();
+    });
+  });
+  updateSortHeaders();
+
+  ['fSearch','fStatus','fApp'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', renderTable);
+    el.addEventListener('change', renderTable);
+  });
+
+  function svgEl(tag, attrs){
+    const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v));
+    return el;
+  }
+
+  function emptyChartMsg(svg, W, H, subEl, subText, msg){
+    document.getElementById(subEl).textContent = subText;
+    const t = svgEl('text', { x: W/2, y: H/2, 'text-anchor':'middle', 'font-size':12 });
+    t.textContent = msg;
+    svg.appendChild(t);
+  }
+
+  function renderProfitChart(){
+    const svg = document.getElementById('profitChart');
+    svg.innerHTML = '';
+    const W = 620, H = 220, padL = 48, padR = 12, padT = 14, padB = 28;
+
+    const events = [];
+    items.forEach(it => {
+      const spendDate = it.dateAdded || it.dateListed || '';
+      const m = itemMetrics(it);
+      if (spendDate){
+        events.push({ date: spendDate, amount: -m.boughtFor });
+      }
+      if (it.sold === 'yes' && it.dateSold){
+        events.push({ date: it.dateSold, amount: m.netRevenue });
+      }
+    });
+    events.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    if (!events.length){
+      emptyChartMsg(svg, W, H, 'profitChartSub', 'No activity recorded yet', 'Add stock or mark a sale to see this chart.');
+      return;
+    }
+
+    let running = 0;
+    const points = [0].concat(events.map(e => { running += e.amount; return running; }));
+    const spends = events.filter(e => e.amount < 0).length;
+    const sales = events.filter(e => e.amount > 0).length;
+    document.getElementById('profitChartSub').textContent =
+      'Cumulative — ' + spends + ' buy' + (spends===1?'':'s') + ', ' + sales + ' sale' + (sales===1?'':'s');
+
+    const maxV = Math.max(...points, 0);
+    const minV = Math.min(...points, 0);
+    const range = (maxV - minV) || 1;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const yForVal = v => padT + innerH - ((v - minV) / range) * innerH;
+
+    const defs = svgEl('defs', {});
+    const grad = svgEl('linearGradient', { id:'areaGrad', x1:'0', y1:'0', x2:'0', y2:'1' });
+    grad.appendChild(svgEl('stop', { offset:'0%', 'stop-color':'#e3d7c7', 'stop-opacity':'0.45' }));
+    grad.appendChild(svgEl('stop', { offset:'100%', 'stop-color':'#e3d7c7', 'stop-opacity':'0' }));
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    for (let i=0;i<=3;i++){
+      const val = minV + (range*i/3);
+      const y = yForVal(val);
+      svg.appendChild(svgEl('line', { x1:padL, x2:W-padR, y1:y, y2:y, class:'grid-line' }));
+      const lbl = svgEl('text', { x: 4, y: y+4, 'font-size':10 });
+      lbl.textContent = fmtEuro(val);
+      svg.appendChild(lbl);
+    }
+    if (minV < 0 && maxV > 0){
+      const zeroY = yForVal(0);
+      svg.appendChild(svgEl('line', { x1:padL, x2:W-padR, y1:zeroY, y2:zeroY, stroke:'#e3d7c7', 'stroke-width':1, 'stroke-opacity':0.4 }));
+    }
+
+    const xStep = points.length > 1 ? innerW / (points.length - 1) : 0;
+    const coords = points.map((v,i) => [
+      padL + (points.length > 1 ? i*xStep : innerW/2),
+      yForVal(v)
+    ]);
+
+    let linePath = `M ${coords[0][0]} ${coords[0][1]}`;
+    coords.slice(1).forEach(([x,y]) => linePath += ` L ${x} ${y}`);
+    const baseline = yForVal(Math.min(0, minV));
+    let areaPath = linePath + ` L ${coords[coords.length-1][0]} ${baseline} L ${coords[0][0]} ${baseline} Z`;
+
+    svg.appendChild(svgEl('path', { d: areaPath, class:'area-fill' }));
+    coords.slice(1).forEach(([x,y], i) => {
+      const isDropping = points[i + 1] < points[i];
+      svg.appendChild(svgEl('path', {
+        d: `M ${coords[i][0]} ${coords[i][1]} L ${x} ${y}`,
+        class:'line-path',
+        stroke: isDropping ? '#c8543f' : '#e3d7c7'
+      }));
+    });
+
+    coords.forEach(([x,y], i) => {
+      const isLast = i === coords.length - 1;
+      svg.appendChild(svgEl('circle', { cx:x, cy:y, r: isLast ? 4 : 3, fill: points[i] < 0 ? '#c8543f' : '#f8ebce' }));
+    });
+  }
+
+  const DONUT_COLORS = ['#e3d7c7', '#8fae6c', '#c99a3f', '#6f93a8', '#c8543f', '#9c7fb0', '#b9ad99'];
+  const APP_CHART_COLORS = { Facebook:'#1877f2', eBay:'#0064d2', Vinted:'#007782', Other:'#e3d7c7' };
+
+  function renderDonutChart(wrapId, subId, entries, opts){
+    opts = opts || {};
+    const wrap = document.getElementById(wrapId);
+    wrap.innerHTML = '';
+    if (!entries.length){
+      document.getElementById(subId).textContent = opts.emptySub || 'No data yet';
+      wrap.innerHTML = '<div class="donut-empty">' + (opts.emptyMsg || 'Nothing to show yet.') + '</div>';
+      return;
+    }
+    document.getElementById(subId).textContent = opts.sub ? opts.sub(entries) : entries.length + ' item' + (entries.length===1?'':'s');
+
+    const total = entries.reduce((s,e) => s + Math.max(e[1],0), 0) || 1;
+    const size = 168, r = 64, cx = size/2, cy = size/2, stroke = 26;
+    const circumference = 2 * Math.PI * r;
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+    svg.setAttribute('width', size);
+    svg.setAttribute('height', size);
+
+    const bg = svgEl('circle', { cx, cy, r, fill:'none', stroke:'#1a1712', 'stroke-width':stroke });
+    svg.appendChild(bg);
+
+    let offset = 0;
+    entries.forEach(([label, val], i) => {
+      const v = Math.max(val, 0);
+      const frac = v / total;
+      const len = frac * circumference;
+      const color = opts.colorFor ? opts.colorFor(label) : DONUT_COLORS[i % DONUT_COLORS.length];
+      const circle = svgEl('circle', {
+        cx, cy, r, fill:'none',
+        stroke: color,
+        'stroke-width': stroke,
+        'stroke-dasharray': `${len} ${circumference - len}`,
+        'stroke-dashoffset': -offset,
+        transform: `rotate(-90 ${cx} ${cy})`
+      });
+      svg.appendChild(circle);
+      offset += len;
+    });
+
+    const centerLabel = svgEl('text', { x:cx, y:cy-3, 'text-anchor':'middle', 'font-size':11, fill:'#a89a86' });
+    centerLabel.textContent = 'Total';
+    svg.appendChild(centerLabel);
+    const centerVal = svgEl('text', { x:cx, y:cy+15, 'text-anchor':'middle', 'font-size':13, fill:'#f8ebce', 'font-weight':800 });
+    centerVal.textContent = fmtEuro(total);
+    svg.appendChild(centerVal);
+
+    const legend = document.createElement('div');
+    legend.className = 'donut-legend';
+    entries.forEach(([label, val], i) => {
+      const color = opts.colorFor ? opts.colorFor(label) : DONUT_COLORS[i % DONUT_COLORS.length];
+      const row = document.createElement('div');
+      row.className = 'leg-row';
+      row.innerHTML = `
+        <div class="leg-left"><span class="dot" style="background:${color}"></span>${label}</div>
+        <div class="leg-val">${fmtEuro(val)}</div>
+      `;
+      legend.appendChild(row);
+    });
+
+    wrap.appendChild(svg);
+    wrap.appendChild(legend);
+  }
+
+  function renderLineChart(svgId, subId, entries, opts){
+    opts = opts || {};
+    const svg = document.getElementById(svgId);
+    svg.innerHTML = '';
+    const W = 620, H = 220, padL = 48, padR = 14, padT = 14, padB = 28;
+
+    if (!entries.length){
+      emptyChartMsg(svg, W, H, subId, opts.emptySub || 'No data yet', opts.emptyMsg || 'Nothing to show yet.');
+      return;
+    }
+    document.getElementById(subId).textContent = opts.sub ? opts.sub(entries) : entries.length + ' point' + (entries.length===1?'':'s');
+
+    const chartEntries = opts.includeBaseline ? [['', 0], ...entries] : entries;
+    const vals = chartEntries.map(e => e[1]);
+    const maxV = Math.max(...vals, 0);
+    const minV = Math.min(...vals, 0);
+    const range = (maxV - minV) || 1;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const yForVal = v => padT + innerH - ((v - minV) / range) * innerH;
+
+    const defs = svgEl('defs', {});
+    const gradId = svgId + 'Grad';
+    const grad = svgEl('linearGradient', { id:gradId, x1:'0', y1:'0', x2:'0', y2:'1' });
+    grad.appendChild(svgEl('stop', { offset:'0%', 'stop-color':'#e3d7c7', 'stop-opacity':'0.4' }));
+    grad.appendChild(svgEl('stop', { offset:'100%', 'stop-color':'#e3d7c7', 'stop-opacity':'0' }));
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    for (let i=0;i<=3;i++){
+      const val = minV + (range*i/3);
+      const y = yForVal(val);
+      svg.appendChild(svgEl('line', { x1:padL, x2:W-padR, y1:y, y2:y, class:'grid-line' }));
+      const lbl = svgEl('text', { x: 4, y: y+4, 'font-size':10 });
+      lbl.textContent = fmtEuro(val);
+      svg.appendChild(lbl);
+    }
+
+    const xStep = chartEntries.length > 1 ? innerW / (chartEntries.length - 1) : 0;
+    const coords = chartEntries.map(([label,v],i) => [
+      padL + (chartEntries.length > 1 ? i*xStep : innerW/2),
+      yForVal(v)
+    ]);
+
+    let linePath = `M ${coords[0][0]} ${coords[0][1]}`;
+    coords.slice(1).forEach(([x,y]) => linePath += ` L ${x} ${y}`);
+    const baseline = yForVal(minV);
+    let areaPath = linePath + ` L ${coords[coords.length-1][0]} ${baseline} L ${coords[0][0]} ${baseline} Z`;
+
+    svg.appendChild(svgEl('path', { d: areaPath, fill:`url(#${gradId})` }));
+    svg.appendChild(svgEl('path', { d: linePath, class:'line-path' }));
+
+    coords.forEach(([x,y], i) => {
+      const isLast = i === coords.length - 1;
+      svg.appendChild(svgEl('circle', { cx:x, cy:y, r:isLast ? 4 : 3, fill:'#f8ebce' }));
+      const lbl = svgEl('text', { x, y: padT+innerH+16, 'text-anchor':'middle', 'font-size':10 });
+      lbl.textContent = chartEntries[i][0];
+      svg.appendChild(lbl);
+    });
+  }
+
+  function renderAppChart(){
+    const soldItems = items.filter(it => it.sold === 'yes');
+    const byApp = {};
+    soldItems.forEach(it => {
+      const app = it.app || 'Other';
+      byApp[app] = (byApp[app] || 0) + (Number(it.soldFor) || 0);
+    });
+    renderDonutChart('appChart', 'appChartSub', Object.entries(byApp), {
+      sub: (e) => e.length + ' platform' + (e.length===1?'':'s'),
+      colorFor: (label) => APP_CHART_COLORS[label] || APP_CHART_COLORS.Other,
+      emptySub: 'No sales yet', emptyMsg: 'No sold items yet.'
+    });
+  }
+
+  function renderMonthChart(){
+    const soldItems = items.filter(it => it.sold === 'yes' && it.dateSold);
+    const byMonth = {};
+    soldItems.forEach(it => {
+      const key = it.dateSold.slice(0,7);
+      byMonth[key] = (byMonth[key] || 0) + (Number(it.soldFor) || 0);
+    });
+    const entries = Object.entries(byMonth).sort((a,b) => a[0].localeCompare(b[0]))
+      .map(([k,v]) => {
+        const d = new Date(k + '-01T00:00:00');
+        const label = isNaN(d) ? k : d.toLocaleDateString('en-GB', { month:'short', year:'2-digit' });
+        return [label, v];
+      });
+    renderLineChart('monthChart', 'monthChartSub', entries, {
+      sub: (e) => e.length + ' month' + (e.length === 1 ? '' : 's') + ' with sales',
+      emptySub: 'No sales yet', emptyMsg: 'No sold items yet.', includeBaseline: true
+    });
+  }
+
+  function renderCatChart(){
+    const soldItems = items.filter(it => it.sold === 'yes');
+    const byCat = {};
+    soldItems.forEach(it => {
+      const m = itemMetrics(it);
+      const cat = it.category || 'Uncategorized';
+      byCat[cat] = (byCat[cat] || 0) + m.profit;
+    });
+    const entries = Object.entries(byCat).sort((a,b) => b[1]-a[1]);
+    const wrap = document.getElementById('catChart');
+    wrap.innerHTML = '';
+    if (!entries.length){
+      document.getElementById('catChartSub').textContent = 'No sales yet';
+      wrap.innerHTML = '<div class="donut-empty">No sold items yet.</div>';
+      return;
+    }
+    document.getElementById('catChartSub').textContent = entries.length + ' categor' + (entries.length===1?'y':'ies');
+    const maxAbs = Math.max(...entries.map(e => Math.abs(e[1])), 1);
+    entries.forEach(([label, val]) => {
+      const pct = Math.max(4, Math.round((Math.abs(val) / maxAbs) * 100));
+      const row = document.createElement('div');
+      row.className = 'hbar-row';
+      row.innerHTML = `
+        <div class="hbar-top">
+          <span class="hbar-label">${label}</span>
+          <span class="hbar-val ${val>=0?'pos':'neg'}">${fmtEuro(val)}</span>
+        </div>
+        <div class="hbar-track"><div class="hbar-fill ${val<0?'neg':''}" style="width:${pct}%"></div></div>
+      `;
+      wrap.appendChild(row);
+    });
+  }
+
+  function renderPerformance(){
+    const soldItems = items.filter(it => it.sold === 'yes').map(it => ({ it, m: itemMetrics(it) }));
+    const top = soldItems.slice().sort((a,b) => b.m.profit - a.m.profit).slice(0,4);
+    const topWrap = document.getElementById('perfTop');
+    topWrap.innerHTML = top.length ? top.map(({it,m}) => `
+      <div class="perf-row">
+        <div>
+          <div class="perf-name">${it.product || '—'}</div>
+          <div class="perf-meta">${it.app || 'Unassigned'} · ${m.roi.toFixed(0)}% ROI</div>
+        </div>
+        <div class="perf-val ${m.profit>=0?'pos':'neg'}">${fmtEuro(m.profit)}</div>
+      </div>
+    `).join('') : '<div class="perf-empty">No sold items yet.</div>';
+
+    const losses = soldItems.filter(({m}) => m.profit < 0).sort((a,b) => a.m.profit - b.m.profit).slice(0,3);
+    const staleItems = items.filter(it => itemMetrics(it).isStale)
+      .map(it => ({ it, m: itemMetrics(it) }))
+      .sort((a,b) => daysBetween(b.it.dateListed, todayStr()) - daysBetween(a.it.dateListed, todayStr()))
+      .slice(0,3);
+    const bottomWrap = document.getElementById('perfBottom');
+    let html = '';
+    losses.forEach(({it,m}) => {
+      html += `
+      <div class="perf-row">
+        <div>
+          <div class="perf-name">${it.product || '—'}</div>
+          <div class="perf-meta">Sold at a loss · ${it.app || 'Unassigned'}</div>
+        </div>
+        <div class="perf-val neg">${fmtEuro(m.profit)}</div>
+      </div>`;
+    });
+    staleItems.forEach(({it}) => {
+      const d = daysBetween(it.dateListed, todayStr());
+      html += `
+      <div class="perf-row">
+        <div>
+          <div class="perf-name">${it.product || '—'}</div>
+          <div class="perf-meta">Listed, unsold</div>
+        </div>
+        <div class="perf-val"><span class="stale-tag">${d}d</span></div>
+      </div>`;
+    });
+    bottomWrap.innerHTML = html || '<div class="perf-empty">Nothing needs attention right now.</div>';
+  }
+
+  function renderMarquee(){
+    const s = computeStats();
+    const items2 = [
+      { t:'Revenue ' + fmtEuro(s.revenue), cls:'' },
+      { t:'Net profit ' + fmtEuro(s.netProfit), cls: s.netProfit >= 0 ? 'marq-pos' : 'marq-neg' },
+      { t:'Paid out ' + fmtEuro(s.paid), cls:'' },
+      { t:s.sold + ' sold', cls:'' },
+      { t:s.notSold + ' not sold', cls:'' },
+      { t:'AFTERFORM stock ledger', cls:'' }
+    ];
+    const track = document.getElementById('marqueeTrack');
+    const full = items2.concat(items2);
+    track.innerHTML = full.map(x => `<span class="${x.cls}">${x.t}</span>`).join('');
+  }
+
+  function toCsv(){
+    const headers = ['Product','Category','Date added','Date listed','Date sold','Sold','Listed','Sold for','Bought for','Net profit','Payment','App sold'];
+    const rows = items.map(it => {
+      const m = itemMetrics(it);
+      return [
+        it.product, it.category, it.dateAdded, it.dateListed, it.dateSold,
+        it.sold, it.listed, m.soldFor, m.boughtFor,
+        it.sold === 'yes' ? m.profit.toFixed(2) : '', it.payment, it.app
+      ].map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',');
+    });
+    return [headers.join(','), ...rows].join('\n');
+  }
+
+  function renderAll(){
+    renderStats();
+    renderTable();
+    renderSoldArchive();
+    renderProfitChart();
+    renderMonthChart();
+    renderAppChart();
+    renderCatChart();
+    renderPerformance();
+    renderMarquee();
+  }
+
+  function updatePageView(){
+    const page = location.hash.slice(1);
+    document.body.dataset.view = page === 'inventory' ? 'inventory' : page === 'sold' ? 'sold' : 'dashboard';
+  }
+  window.addEventListener('hashchange', updatePageView);
+  updatePageView();
+
+  // ---- Add-stock panel ----
+  const overlay = document.getElementById('panelOverlay');
+  function updatePerUnitHint(){
+    const total = Number(document.getElementById('fTotalPaid').value) || 0;
+    const qty = Math.max(1, Math.round(Number(document.getElementById('fQuantity').value) || 1));
+    const hint = document.getElementById('fPerUnitHint');
+    if (total > 0){
+      hint.textContent = '≈ ' + fmtEuro(total / qty) + ' per unit across ' + qty + (qty === 1 ? ' item' : ' items') + ' — covers bulk pricing and shipping.';
+    } else {
+      hint.textContent = 'Total paid is split evenly across the quantity — covers bulk pricing and shipping.';
+    }
+  }
+
+  function openPanel(){
+    overlay.classList.add('open');
+  }
+  function openInventory(){
+    if (location.hash !== '#inventory') location.hash = 'inventory';
+  }
+  function closePanel(){ overlay.classList.remove('open'); }
+  document.getElementById('openAddBtn').addEventListener('click', openInventory);
+  document.getElementById('openAddBtn2').addEventListener('click', openPanel);
+  document.getElementById('cancelAddBtn').addEventListener('click', closePanel);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closePanel(); });
+
+  document.getElementById('saveAddBtn').addEventListener('click', () => {
+    const product = document.getElementById('fProduct').value.trim();
+    if (!product){ showNotice('Give the item a product name first.', 'Stock not added'); return; }
+    const category = document.getElementById('fCategory').value.trim();
+    const totalPaid = Number(document.getElementById('fTotalPaid').value) || 0;
+    const listed = document.getElementById('fListed').value;
+    const dateListed = listed === 'listed' ? todayStr() : '';
+    const quantity = Math.max(1, Math.round(Number(document.getElementById('fQuantity').value) || 1));
+    const boughtFor = Math.round((totalPaid / quantity) * 100) / 100;
+    const stockId = 's_' + Date.now();
+    const dateAdded = todayStr();
+
+    for (let i = 0; i < quantity; i++){
+      items.push({
+        id: 'i_' + Date.now() + '_' + i,
+        stockId,
+        product,
+        category,
+        boughtFor,
+        dateAdded,
+        dateListed,
+        dateSold: '',
+        sold: 'no',
+        listed,
+        soldFor: 0,
+        fees: 0,
+        payment: '',
+        app: '',
+      });
+    }
+    saveItems();
+    renderAll();
+    closePanel();
+    document.getElementById('fProduct').value = '';
+    document.getElementById('fCategory').value = '';
+    document.getElementById('fTotalPaid').value = '';
+    document.getElementById('fQuantity').value = '1';
+    document.getElementById('fListed').value = 'notyet';
+    updatePerUnitHint();
+  });
+
+  // ---- Edit item panel ----
+  const editOverlay = document.getElementById('editOverlay');
+  let editingId = null;
+
+  function paymentForApp(app){
+    if (app === 'Facebook') return 'Cash';
+    if (app === 'eBay' || app === 'Vinted') return 'Card / PayPal';
+    return '—';
+  }
+  function updatePaymentDisplay(){
+    const app = document.getElementById('eApp').value;
+    document.getElementById('ePaymentDisplay').textContent = paymentForApp(app);
+  }
+
+  function openEditPanel(id, opts){
+    opts = opts || {};
+    const it = items.find(x => x.id === id);
+    if (!it) return;
+    editingId = id;
+    document.getElementById('eProduct').value = it.product || '';
+    document.getElementById('eCategory').value = it.category || '';
+    document.getElementById('eBought').value = it.boughtFor || 0;
+    document.getElementById('eDateListed').value = it.dateListed || '';
+    document.getElementById('eSold').value = opts.markSold ? 'yes' : (it.sold || 'no');
+    document.getElementById('eListed').value = it.listed || 'notyet';
+    document.getElementById('eDateSold').value = it.dateSold || (opts.markSold ? todayStr() : '');
+    document.getElementById('eSoldFor').value = it.soldFor || 0;
+    document.getElementById('eApp').value = it.app || '';
+    updatePaymentDisplay();
+    editOverlay.classList.add('open');
+    if (opts.markSold){
+      const soldForField = document.getElementById('eSoldFor');
+      setTimeout(() => { soldForField.focus(); soldForField.select(); }, 50);
+    }
+  }
+  function closeEditPanel(){ editOverlay.classList.remove('open'); editingId = null; }
+  document.getElementById('cancelEditBtn').addEventListener('click', closeEditPanel);
+  editOverlay.addEventListener('click', (e) => { if (e.target === editOverlay) closeEditPanel(); });
+
+  document.getElementById('eSold').addEventListener('change', (e) => {
+    const dateSoldField = document.getElementById('eDateSold');
+    if (e.target.value === 'yes' && !dateSoldField.value){
+      dateSoldField.value = todayStr();
+    }
+  });
+
+  document.getElementById('eListed').addEventListener('change', (e) => {
+    const dateListedField = document.getElementById('eDateListed');
+    if (e.target.value === 'listed'){
+      if (!dateListedField.value) dateListedField.value = todayStr();
+    } else {
+      dateListedField.value = '';
+    }
+  });
+
+  document.getElementById('eApp').addEventListener('change', updatePaymentDisplay);
+
+  document.getElementById('saveEditBtn').addEventListener('click', () => {
+    const it = items.find(x => x.id === editingId);
+    if (!it) return;
+    it.product = document.getElementById('eProduct').value.trim() || it.product;
+    it.category = document.getElementById('eCategory').value.trim();
+    it.boughtFor = Number(document.getElementById('eBought').value) || 0;
+    it.dateListed = document.getElementById('eDateListed').value;
+    it.sold = document.getElementById('eSold').value;
+    it.listed = document.getElementById('eListed').value;
+    it.dateSold = document.getElementById('eDateSold').value;
+    it.soldFor = Number(document.getElementById('eSoldFor').value) || 0;
+    it.app = document.getElementById('eApp').value;
+    it.payment = it.app ? paymentForApp(it.app) : '';
+    saveItems();
+    renderAll();
+    closeEditPanel();
+  });
+
+  // ---- Goal panel ----
+  const goalOverlay = document.getElementById('goalOverlay');
+  document.getElementById('goalEditBtn').addEventListener('click', () => {
+    document.getElementById('gGoalInput').value = goal || '';
+    goalOverlay.classList.add('open');
+  });
+  document.getElementById('cancelGoalBtn').addEventListener('click', () => goalOverlay.classList.remove('open'));
+  goalOverlay.addEventListener('click', (e) => { if (e.target === goalOverlay) goalOverlay.classList.remove('open'); });
+  document.getElementById('saveGoalBtn').addEventListener('click', () => {
+    goal = Number(document.getElementById('gGoalInput').value) || 0;
+    saveGoal(goal);
+    goalOverlay.classList.remove('open');
+    renderStats();
+  });
+
+  // ---- Category manager panel ----
+  const categoryOverlay = document.getElementById('categoryOverlay');
+  function openCategoryManager(){
+    renderCategoryManageList();
+    document.getElementById('cNewCategory').value = '';
+    categoryOverlay.classList.add('open');
+  }
+  document.getElementById('manageCatsBtn1').addEventListener('click', openCategoryManager);
+  document.getElementById('manageCatsBtn2').addEventListener('click', openCategoryManager);
+  document.getElementById('closeCategoryBtn').addEventListener('click', () => categoryOverlay.classList.remove('open'));
+  categoryOverlay.addEventListener('click', (e) => { if (e.target === categoryOverlay) categoryOverlay.classList.remove('open'); });
+  document.getElementById('addCategoryBtn').addEventListener('click', () => {
+    const input = document.getElementById('cNewCategory');
+    addCategory(input.value);
+    input.value = '';
+    input.focus();
+  });
+  document.getElementById('cNewCategory').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('addCategoryBtn').click();
+  });
+
+  renderAll();
+  loadFromServer();
+</script>
+</body>
+</html>
