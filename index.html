@@ -558,9 +558,6 @@ body{
     nav{ display:none; }
     .hero-note{ display:none; }
   }
-
-.archive-table .row-actions{ width:50px; text-align:center; white-space:nowrap; }
-.archive-table .archive-remove{ display:inline-flex; }
 </style>
 </head>
 <body data-view="dashboard">
@@ -746,7 +743,6 @@ body{
               <th>Net profit</th>
               <th>Payment</th>
               <th>Platform</th>
-        <th>Action</th>
             </tr>
           </thead>
           <tbody id="archiveBody"></tbody>
@@ -1256,8 +1252,12 @@ body{
         it.listed = 'listed';
         if (!it.dateSold) it.dateSold = todayStr();
       } else {
+        const wasListed = it.listed === 'listed';
         it.sold = 'no';
         it.listed = value === 'listed' ? 'listed' : 'notyet';
+        if (value === 'listed' && !wasListed && !it.dateListed){
+          it.dateListed = todayStr();
+        }
         if (value !== 'sold') it.dateSold = '';
       }
     } else if (key === 'app'){
@@ -1497,15 +1497,7 @@ body{
         <td class="cell-num ${m.profit >= 0 ? 'pos' : 'neg'}">${fmtEuro(m.profit)}</td>
         <td>${it.payment}</td>
         <td><span class="pill ${appPillClass(it.app)}">${it.app}</span></td>
-        <td class="row-actions">
-          <button class="row-remove archive-remove" data-id="${it.id}" title="Delete sale">&times;</button>
-        </td>
       `;
-      tr.querySelector('.archive-remove').addEventListener('click', () => {
-        items = items.filter(x => x.id !== it.id);
-        saveItems();
-        renderAll();
-      });
       body.appendChild(tr);
     });
   }
