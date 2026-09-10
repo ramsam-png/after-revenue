@@ -935,13 +935,30 @@ body{
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items, goal, categories })
       })
-        .then(r => { if (!r.ok) throw new Error('save failed'); setSyncStatus('Saved'); })
-        .catch(() => setSyncStatus('Save failed — check connection'));
+        .then(async r => {
+          if (!r.ok){
+            let detail = '';
+            try { detail = (await r.json()).detail || ''; } catch(e){}
+            throw new Error('save failed: ' + r.status + (detail ? ' — ' + detail : ''));
+          }
+          setSyncStatus('Saved');
+        })
+        .catch(err => {
+          console.error('Sync error:', err);
+          setSyncStatus('Save failed — ' + err.message);
+        });
     }, 400);
   }
   function loadFromServer(){
     fetch('/api/data')
-      .then(r => r.ok ? r.json() : null)
+      .then(async r => {
+        if (!r.ok){
+          let detail = '';
+          try { detail = (await r.json()).detail || ''; } catch(e){}
+          throw new Error('load failed: ' + r.status + (detail ? ' — ' + detail : ''));
+        }
+        return r.json();
+      })
       .then(data => {
         if (data && (data.items || data.categories || data.goal)){
           items = data.items || items;
@@ -955,7 +972,10 @@ body{
         }
         setSyncStatus('Synced');
       })
-      .catch(() => setSyncStatus('Offline — using local copy'));
+      .catch(err => {
+        console.error('Load error:', err);
+        setSyncStatus('Offline — using local copy');
+      });
   }
 
   function saveCategories(){ localStorage.setItem(CATEGORY_KEY, JSON.stringify(categories)); syncToServer(); }
